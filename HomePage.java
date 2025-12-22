@@ -145,7 +145,23 @@ public class HomePage {
         }
     }
 
-    
+    public class MenuItem extends Menu {
+        public MenuItem(String food, String drink, double price) {
+            super(food, drink, price);
+        }
+
+        public void ViewMenu() {
+            System.out.println("Menu Items: ");
+        }
+
+        public void AddMenuItem() {
+            System.out.println("Add Menu Item: ");
+        }
+
+        public void RemoveMenuItem() {
+            System.out.println("Remove Menu Item: ");
+        }
+    }
 
     
 }
