@@ -21,6 +21,9 @@ public class HomePage {
 
         System.out.println("\nWelcome " + name + "!");
         
+        // Create InventoryManager instance
+        MenuManager.InventoryManager inventoryManager = menuManager.new InventoryManager(sc);
+        
         int choice;
 
         do {
@@ -29,151 +32,233 @@ public class HomePage {
             System.out.println("2. Order");
             System.out.println("3. Report");
             System.out.println("4. Ingredient");
+            System.out.println("5. Exit");
             System.out.print("Your choice: ");
 
             choice = sc.nextInt();
 
-            if(choice < 1 || choice > 4) {
+            if(choice < 1 || choice > 5) {
                 System.out.println("Invalid choice. Please try again.");
+                continue;
             }
-        } while (choice != 1 && choice != 2 && choice != 3 && choice != 4);
 
-        switch(choice) {
-            case 1:
-                int choice2;
-                do {
-                    System.out.println("=".repeat(10) + "Menu" + "=".repeat(10));
-                    System.out.println("1. View Menu Items");
-                    System.out.println("2. Add Menu Item");
-                    System.out.println("3. Remove Menu Item");
-                    System.out.print("Your choice: ");
-
-                    choice2 = sc.nextInt();
-
-                    switch(choice2) {
-                        case 1:
-                            menuManager.viewMenu();
-                            break;
-                        case 2: {
-                            if(role.equals("Manager")) {
-                                sc.nextLine();
-                                System.out.print("Enter food name: ");
-                                String food = sc.nextLine();
-                                System.out.print("Enter category: ");
-                                String category = sc.nextLine();
-                                System.out.print("Enter food ID: ");
-                                int foodId = sc.nextInt();
-                                System.out.print("Enter food price: ");
-                                double price = sc.nextDouble();
-                                System.out.print("Enter food income: ");
-                                double income = sc.nextDouble();
-                                menuManager.addMenuItem(new MenuItem(food, category, foodId, price, income));
-                            } else {
-                                System.out.println("You don't have permission to add menu items.");
-                            }
-                            break;
-                        }
-                        case 3: {
-                            if(role.equals("Manager")) {
-                                sc.nextLine();
-                                System.out.print("Enter food name to remove: ");
-                                String foodToRemove = sc.nextLine();
-                                menuManager.removeMenuItem(foodToRemove);
-                            } else {
-                                System.out.println("You don't have permission to remove menu items.");
-                            }
-                            
-                            break;
-                        }
-                    }
-
-                    if(choice2 != 1 && choice2 != 2 && choice2 != 3 && choice2 != 4) {
-                        System.out.println("Invalid choice. Please try again.");
-                    }
-                } while (choice2 < 1 || choice2 > 4);
-                break;
-
-            case 2:
-                int choice3;
-                do {
-                    System.out.println("=".repeat(10) + "Order" + "=".repeat(10));
-                    System.out.println("1. View Orders");
-                    System.out.println("2. Add Order");
-                    System.out.println("3. Remove Order");
-                    System.out.print("Your choice: ");
-
-                    choice3 = sc.nextInt();
-
-                    if(choice3 != 1 && choice3 != 2 && choice3 != 3) {
-                        System.out.println("Invalid choice. Please try again.");
-                    }
-                } while (choice3 < 1 || choice3 > 3);
-              
-                break;
-
-            case 3:
-                int choice4;
-                do {
-                    System.out.println("=".repeat(10) + "Report" + "=".repeat(10));
-                    System.out.println("1. View daily report");
-                    System.out.println("2. View monthly report");
-                    System.out.println("3. View annually report");
-                    System.out.print("Your choice: ");
-
-                    choice4 = sc.nextInt();
-
-                    if(choice4 != 1 && choice4 != 2 && choice4 != 3) {
-                        System.out.println("Invalid choice. Please try again.");
-                    }
-                } while (choice4 != 1 && choice4 != 2 && choice4 != 3);
-                break;
-
-            case 4:
-                int choice5;
-                int choice6;
-                do {
-                    System.out.println("=".repeat(10) + "Ingredient" + "=".repeat(10));
-                    System.out.println("1. View Recipes");
-                    System.out.println("2. Check Inventory");
-                    System.out.print("Your choice: ");
-
-                    choice5 = sc.nextInt();
-                    
-                    if(choice5 == 2) {
-                            System.out.println("=".repeat(10) + "Inventory" + "=".repeat(10));
-                            System.out.println("1. View Inventory");
-                            System.out.println("2. Add Inventory");
-                            System.out.println("3. Update Inventory");
-                            System.out.print("Your choice: ");
-                            choice6 = sc.nextInt();
-
-                            while(choice6 != 1 && choice6 != 2 && choice6 != 3) {
-                                System.out.println("Invalid choice. Please try again.");
-                            }
-
-                            switch(choice6) {
-                                case 1:
-                                    inventoryManager.viewInventory();
-                                    break;
-                                case 2:
-                                    inventoryManager.addInventory();
-                                    break;
-                                case 3:
-                                    inventoryManager.updateInventory();
-                                    break;
-                            }
-                    }
-                    if(choice5 != 1 && choice5 != 2) {
-                        System.out.println("Invalid choice. Please try again.");
-                    }
-                } while (choice5 != 1 && choice5 != 2);
-                break;
-
-            default:
-                System.out.println("Invalid choice. Please try again.");
-        } 
+            switch(choice) {
+                case 1:
+                    handleMenuOption(sc, menuManager, role);
+                    break;
+                case 2:
+                    handleOrderOption(sc);
+                    break;
+                case 3:
+                    handleReportOption(sc);
+                    break;
+                case 4:
+                    handleIngredientOption(sc, inventoryManager);
+                    break;
+                case 5:
+                    System.out.println("Thank you for using the system. Goodbye!");
+                    break;
+            }
+        } while (choice != 5);
 
         sc.close();
+    }
+
+    // Handle Menu operations
+    private static void handleMenuOption(Scanner sc, MenuManager menuManager, String role) {
+        int choice2;
+        do {
+            System.out.println("=".repeat(10) + "Menu" + "=".repeat(10));
+            System.out.println("1. View Menu Items");
+            System.out.println("2. Add Menu Item");
+            System.out.println("3. Remove Menu Item");
+            System.out.println("4. Back to Main");
+            System.out.print("Your choice: ");
+
+            choice2 = sc.nextInt();
+
+            if(choice2 < 1 || choice2 > 4) {
+                System.out.println("Invalid choice. Please try again.");
+                continue;
+            }
+
+            switch(choice2) {
+                case 1:
+                    menuManager.viewMenu();
+                    break;
+                case 2: {
+                    if(role.equals("Manager")) {
+                        sc.nextLine();
+                        System.out.print("Enter food name: ");
+                        String food = sc.nextLine();
+                        System.out.print("Enter category: ");
+                        String category = sc.nextLine();
+                        System.out.print("Enter food ID: ");
+                        int foodId = sc.nextInt();
+                        System.out.print("Enter food price: ");
+                        double price = sc.nextDouble();
+                        System.out.print("Enter food income: ");
+                        double income = sc.nextDouble();
+                        menuManager.addMenuItem(new MenuItem(food, category, foodId, price, income));
+                    } else {
+                        System.out.println("You don't have permission to add menu items.");
+                    }
+                    break;
+                }
+                case 3: {
+                    if(role.equals("Manager")) {
+                        sc.nextLine();
+                        System.out.print("Enter food name to remove: ");
+                        String foodToRemove = sc.nextLine();
+                        menuManager.removeMenuItem(foodToRemove);
+                    } else {
+                        System.out.println("You don't have permission to remove menu items.");
+                    }
+                    break;
+                }
+                case 4:
+                    return;
+            }
+        } while (choice2 != 4);
+    }
+
+    // Handle Order operations
+    private static void handleOrderOption(Scanner sc) {
+        int choice3;
+        do {
+            System.out.println("=".repeat(10) + "Order" + "=".repeat(10));
+            System.out.println("1. View Orders");
+            System.out.println("2. Add Order");
+            System.out.println("3. Remove Order");
+            System.out.println("4. Back to Main");
+            System.out.print("Your choice: ");
+
+            choice3 = sc.nextInt();
+
+            if(choice3 < 1 || choice3 > 4) {
+                System.out.println("Invalid choice. Please try again.");
+                continue;
+            }
+
+            switch(choice3) {
+                case 1:
+                    System.out.println("Viewing orders...");
+                    // TODO: Implement view orders functionality
+                    break;
+                case 2:
+                    System.out.println("Adding new order...");
+                    // TODO: Implement add order functionality
+                    break;
+                case 3:
+                    System.out.println("Removing order...");
+                    // TODO: Implement remove order functionality
+                    break;
+                case 4:
+                    return;
+            }
+        } while (choice3 != 4);
+    }
+
+    // Handle Report operations
+    private static void handleReportOption(Scanner sc) {
+        int choice4;
+        do {
+            System.out.println("=".repeat(10) + "Report" + "=".repeat(10));
+            System.out.println("1. View daily report");
+            System.out.println("2. View monthly report");
+            System.out.println("3. View annually report");
+            System.out.println("4. Back to Main");
+            System.out.print("Your choice: ");
+
+            choice4 = sc.nextInt();
+
+            if(choice4 < 1 || choice4 > 4) {
+                System.out.println("Invalid choice. Please try again.");
+                continue;
+            }
+
+            switch(choice4) {
+                case 1:
+                    System.out.println("Displaying daily report...");
+                    // TODO: Implement daily report functionality
+                    break;
+                case 2:
+                    System.out.println("Displaying monthly report...");
+                    // TODO: Implement monthly report functionality
+                    break;
+                case 3:
+                    System.out.println("Displaying annual report...");
+                    // TODO: Implement annual report functionality
+                    break;
+                case 4:
+                    return;
+            }
+        } while (choice4 != 4);
+    }
+
+    // Handle Ingredient/Inventory operations
+    private static void handleIngredientOption(Scanner sc, MenuManager.InventoryManager inventoryManager) {
+        int choice5;
+        do {
+            System.out.println("=".repeat(10) + "Ingredient" + "=".repeat(10));
+            System.out.println("1. View Recipes");
+            System.out.println("2. Check Inventory");
+            System.out.println("3. Back to Main");
+            System.out.print("Your choice: ");
+
+            choice5 = sc.nextInt();
+
+            if(choice5 < 1 || choice5 > 3) {
+                System.out.println("Invalid choice. Please try again.");
+                continue;
+            }
+
+            switch(choice5) {
+                case 1:
+                    System.out.println("Viewing recipes...");
+                    // TODO: Implement view recipes functionality
+                    break;
+                case 2:
+                    handleInventoryOption(sc, inventoryManager);
+                    break;
+                case 3:
+                    return;
+            }
+        } while (choice5 != 3);
+    }
+
+    // Handle Inventory sub-menu
+    private static void handleInventoryOption(Scanner sc, MenuManager.InventoryManager inventoryManager) {
+        int choice6;
+        do {
+            System.out.println("=".repeat(10) + "Inventory" + "=".repeat(10));
+            System.out.println("1. View Inventory");
+            System.out.println("2. Add Inventory");
+            System.out.println("3. Update Inventory");
+            System.out.println("4. Back");
+            System.out.print("Your choice: ");
+
+            choice6 = sc.nextInt();
+
+            if(choice6 < 1 || choice6 > 4) {
+                System.out.println("Invalid choice. Please try again.");
+                continue;
+            }
+
+            switch(choice6) {
+                case 1:
+                    inventoryManager.viewInventory();
+                    break;
+                case 2:
+                    inventoryManager.addInventory();
+                    break;
+                case 3:
+                    inventoryManager.updateInventory();
+                    break;
+                case 4:
+                    return;
+            }
+        } while (choice6 != 4);
     }
     
     public static class Person {
@@ -298,16 +383,19 @@ public class HomePage {
         }
 
         public class InventoryManager {
-            String filePath;
-            String itemName;
-            int quantity;
             private Map<String, Integer> inventory;
+            private Scanner sc;
 
-            public InventoryManager() {
-                inventory = new HashMap<>();
+            public InventoryManager(Scanner scanner) {
+                this.sc = scanner;
+                this.inventory = new HashMap<>();
             }
 
             public void viewInventory() {
+                if (inventory.isEmpty()) {
+                    System.out.println("Inventory is empty!");
+                    return;
+                }
                 System.out.println("\n===== INVENTORY =====");
                 for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
                     System.out.println("Item: " + entry.getKey() + " | Quantity: " + entry.getValue());
@@ -316,6 +404,7 @@ public class HomePage {
             }
 
             public void addInventory() {
+                sc.nextLine(); // Clear buffer
                 System.out.print("Enter item name: ");
                 String itemName = sc.nextLine();
                 System.out.print("Enter quantity: ");
@@ -325,12 +414,17 @@ public class HomePage {
             }
 
             public void updateInventory() {
+                sc.nextLine(); // Clear buffer
                 System.out.print("Enter item name: ");
                 String itemName = sc.nextLine();
                 System.out.print("Enter quantity: ");
                 int quantity = sc.nextInt();
-                inventory.put(itemName, quantity);
-                System.out.println("Item '" + itemName + "' updated successfully!");
+                if (inventory.containsKey(itemName)) {
+                    inventory.put(itemName, quantity);
+                    System.out.println("Item '" + itemName + "' updated successfully!");
+                } else {
+                    System.out.println("Item '" + itemName + "' not found!");
+                }
             }
         }
     }
