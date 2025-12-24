@@ -14,6 +14,7 @@ public class HomePage {
         String name = sc.nextLine();
         System.out.print("ID: ");
         int ID = sc.nextInt();
+        sc.nextLine();
         System.out.print("Role: ");
         String role = sc.next();
         System.out.print("Password: ");
@@ -47,7 +48,7 @@ public class HomePage {
                     handleMenuOption(sc, menuManager, role);
                     break;
                 case 2:
-                    handleOrderOption(sc);
+                    handleOrderOption(sc, menuManager);
                     break;
                 case 3:
                     handleReportOption(sc);
@@ -63,7 +64,82 @@ public class HomePage {
 
         sc.close();
     }
+     static final String ORDER_FILE = "orders.txt";
+     static int lastOrderId = 0;   
+    // View orders
+    static void viewOrders() {
+        try (BufferedReader br = new BufferedReader(new FileReader(ORDER_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("No orders found.");
+        }
+    }
 
+    // Save order
+    static void saveOrder(Order order) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(ORDER_FILE, true))) {
+            bw.write("ORDER_ID:" + order.orderId);
+            bw.newLine();
+            bw.write("CUSTOMER:" + order.customer);
+            bw.newLine();
+
+            for (OrderItem item : order.items) {
+                bw.write(item.toString());
+                bw.newLine();
+            }
+
+            bw.write("TOTAL=" + order.total);
+            bw.newLine();
+            bw.write("INCOME=" + order.income);
+            bw.newLine();
+            bw.write("-----");
+            bw.newLine();
+        } catch (IOException e) {
+            System.out.println("Error saving order.");
+        }
+    }
+    
+    static void removeOrder(int orderId) {
+    File input = new File(ORDER_FILE);
+    File temp = new File("temp.txt");
+    boolean found = false;
+
+    try (
+        BufferedReader br = new BufferedReader(new FileReader(input));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(temp))
+    ) {
+        String line;
+        boolean skip = false;
+
+        while ((line = br.readLine()) != null) {
+            if (line.equals("ORDER_ID:" + orderId)) {
+                skip = true;
+                found = true;
+            }
+
+            if (!skip) {
+                bw.write(line);
+                bw.newLine();
+            }
+
+            if (skip && line.equals("-----")) {
+                skip = false;
+            }
+        }
+    } catch (IOException e) {
+        System.out.println("Error removing order.");
+        return;
+    }
+
+    input.delete();
+    temp.renameTo(input);
+
+    System.out.println(found ? "Order removed successfully." : "Order not found.");
+}
+    
     // Handle Menu operations
     private static void handleMenuOption(Scanner sc, MenuManager menuManager, String role) {
         int choice2;
@@ -123,7 +199,7 @@ public class HomePage {
     }
 
     // Handle Order operations
-    private static void handleOrderOption(Scanner sc) {
+    private static void handleOrderOption(Scanner sc, MenuManager menuManager) {
         int choice3;
         do {
             System.out.println("=".repeat(10) + "Order" + "=".repeat(10));
@@ -134,6 +210,7 @@ public class HomePage {
             System.out.print("Your choice: ");
 
             choice3 = sc.nextInt();
+            sc.nextLine();
 
             if(choice3 < 1 || choice3 > 4) {
                 System.out.println("Invalid choice. Please try again.");
@@ -143,15 +220,72 @@ public class HomePage {
             switch(choice3) {
                 case 1:
                     System.out.println("Viewing orders...");
-                    // TODO: Implement view orders functionality
+                    viewOrders();
                     break;
                 case 2:
                     System.out.println("Adding new order...");
-                    // TODO: Implement add order functionality
+                    sc.nextLine(); 
+
+                    System.out.print("Customer name: ");
+                    String cname = sc.nextLine();
+
+                    System.out.print("Customer ID: ");
+                    int cid = sc.nextInt();
+
+                    System.out.print("Phone: ");
+                    int phone = sc.nextInt();
+                    sc.nextLine();
+
+                    Customer customer = new Customer(cname, cid, phone);
+                    Order order = new Order(++lastOrderId, customer);
+
+                    char more;
+                    do {
+                        menuManager.viewMenu(); 
+
+                        System.out.print("Food name: ");
+                        String foodName = sc.nextLine();
+
+                        System.out.print("Quantity: ");
+                        int qty = sc.nextInt();
+                        sc.nextLine();
+
+                        MenuItem selected = null;
+                        for (MenuItem item : menuManager.getMenuItems()) {
+                            if (item.foodName.equalsIgnoreCase(foodName.trim())) { 
+                                selected = item;
+                                break;
+                            }
+                        }
+
+                        if (selected != null) {
+                            order.addItem(new OrderItem(
+                                selected.foodName,
+                                qty,
+                                selected.foodPrice,
+                                selected.foodIncome
+                            ));
+                        } else {
+                            System.out.println("Food not found.");
+                        }
+
+                        System.out.print("Add more items? (y/n): ");
+                        more = sc.next().toLowerCase().charAt(0);
+                        sc.nextLine();
+
+                    } while (more == 'y');
+
+                    saveOrder(order);
+                    System.out.println("Order placed successfully!");
+                    System.out.println("Total: Rs." + order.total);
+                    System.out.println("Restaurant income: Rs." + order.income);
                     break;
                 case 3:
                     System.out.println("Removing order...");
-                    // TODO: Implement remove order functionality
+                    System.out.print("Enter Order ID: ");
+                    int orderId = sc.nextInt();
+                    sc.nextLine(); 
+                    removeOrder(orderId);
                     break;
                 case 4:
                     return;
@@ -326,16 +460,26 @@ public class HomePage {
             this.filePath = filePath;
             loadFromFile();
         }
-
+        public List<MenuItem> getMenuItems() {
+            return menuItems;
+        }
         public void viewMenu() {
             if (menuItems.isEmpty()) {
                 System.out.println("Menu is empty!");
                 return;
             }
             System.out.println("\n===== MENU =====");
+
             for (MenuItem item : menuItems) {
-                System.out.println("Name: " + item.foodName + " | Category: " + item.category + " | ID: " + item.foodId + " | Price: Rs." + item.foodPrice + " | Income: Rs." + item.foodIncome);
-            }
+                System.out.println(
+                "Name: " + item.foodName +
+                " | Category: " + item.category +
+                " | ID: " + item.foodId +
+                " | Price: Rs." + item.foodPrice +
+                " | Income: Rs." + item.foodIncome
+            );
+        }
+            
             System.out.println("================\n");
         }
 
@@ -426,6 +570,62 @@ public class HomePage {
                     System.out.println("Item '" + itemName + "' not found!");
                 }
             }
+        }
+    }
+    static class Customer extends Person {
+        public Customer(String name, int ID, int phone) {
+            super(name, ID, "Customer", phone, 0, 0);
+        }
+
+        @Override
+        public String toString() {
+            return name + "|" + ID + "|" + phone;
+        }
+    }
+
+    static class OrderItem {
+        String foodName;
+        int quantity;
+        double price;
+        double income;
+
+        public OrderItem(String foodName, int quantity, double price, double income) {
+            this.foodName = foodName;
+            this.quantity = quantity;
+            this.price = price;
+            this.income = income;
+        }
+
+        public double totalPrice() {
+            return price * quantity;
+        }
+
+        public double totalIncome() {
+            return income * quantity;
+        }
+
+        @Override
+        public String toString() {
+            return foodName + "," + quantity + "," + price + "," + income;
+        }
+    }
+
+    static class Order {
+        int orderId;
+        Customer customer;
+        List<OrderItem> items = new ArrayList<>();
+        double total = 0;
+        double income = 0;
+
+        public Order(int orderId, Customer customer) {
+            this.orderId = orderId;
+            this.customer = customer;
+        }
+
+        public void addItem(OrderItem item) {
+            items.add(item);
+            total += item.totalPrice();
+            income += item.totalIncome();
         }
     }
 }
